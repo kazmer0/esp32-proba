@@ -8,7 +8,7 @@
         var socket;
 
         function initWebSocket() {
-            socket = new WebSocket('ws://YOUR_ESP32_IP:81'); // Replace with your ESP32's IP address and WebSocket port
+            socket = new WebSocket('ws://192.168.82.74:81'); // Replace with your ESP32's IP address and WebSocket port
 
             socket.onopen = function() {
                 console.log('WebSocket connection established');
