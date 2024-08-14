@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Piano Tiles Xylophone</title>
+    <script>
+        var socket;
+
+        function initWebSocket() {
+            socket = new WebSocket('ws://YOUR_ESP32_IP:81'); // Replace with your ESP32's IP address and WebSocket port
+
+            socket.onopen = function() {
+                console.log('WebSocket connection established');
+            };
+
+            socket.onmessage = function(event) {
+                console.log('Message from ESP32: ' + event.data);
+            };
+
+            socket.onclose = function() {
+                console.log('WebSocket connection closed');
+            };
+
+            socket.onerror = function(error) {
+                console.log('WebSocket error: ' + error);
+            };
+        }
+
+        function sendNoteToESP32(note) {
+            if (socket && socket.readyState === WebSocket.OPEN) {
+                socket.send(note);
+            } else {
+                console.log('WebSocket connection is not open');
+            }
+        }
+
+        window.onload = function() {
+            initWebSocket();
+        }
+    </script>
+</head>
+<body>
+    <h1>Piano Tiles Xylophone</h1>
+    <p>Click the buttons below to send notes to the ESP32 xylophone:</p>
+    <button onclick="sendNoteToESP32('C4')">C4</button>
+    <button onclick="sendNoteToESP32('D4')">D4</button>
+    <button onclick="sendNoteToESP32('E4')">E4</button>
+    <button onclick="sendNoteToESP32('F4')">F4</button>
+    <button onclick="sendNoteToESP32('G4')">G4</button>
+    <button onclick="sendNoteToESP32('A4')">A4</button>
+    <button onclick="sendNoteToESP32('B4')">B4</button>
+    <button onclick="sendNoteToESP32('C5')">C5</button>
+</body>
+</html>
