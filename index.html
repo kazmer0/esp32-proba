@@ -1,55 +1,194 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Piano Tiles Xylophone</title>
-    <script>
-        var socket;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Piano Tiles Xylophone Game</title>
+    <style>
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-flow: column;
+        height: 100vh;
+        margin: 0;
+        background-color: #f0f0f0;
+      }
 
-        function initWebSocket() {
-            socket = new WebSocket('wss://192.168.82.74:81'); // Replace with your ESP32's IP address and WebSocket port
+      #gameContainer {
+        display: flex;
+        width: 80%;
+        height: 90%;
+        max-height: 600px;
+        background-color: #fff;
+        border: 2px solid #ccc;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+      }
 
-            socket.onopen = function() {
-                console.log('WebSocket connection established');
-            };
+      .column {
+        flex: 1;
+        border-right: 1px solid #ddd;
+        position: relative;
+      }
 
-            socket.onmessage = function(event) {
-                console.log('Message from ESP32: ' + event.data);
-            };
+      .column:last-child {
+        border-right: none;
+      }
 
-            socket.onclose = function() {
-                console.log('WebSocket connection closed');
-            };
+      .tile {
+        position: absolute;
+        width: 95%;
+        height: 50px;
+        background-color: #000;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.1s;
+      }
 
-            socket.onerror = function(error) {
-                console.log('WebSocket error: ' + error);
-            };
+      .tile:hover {
+        background-color: #444;
+      }
+      #scoreDisplay {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .restart {
+        background-color: #000;
+        color: white;
+        border: none;
+        height: 50px;
+        width: 180px;
+        border-radius: 50px;
+        cursor: pointer;
+        margin-top: 20px;
+      }
+      .restart:hover {
+        background-color: #444;
+      }
+      #win {
+        position: absolute;
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+        visibility: hidden;
+        z-index: 1;
+      }
+      #win b {
+        font-size: larger;
+        margin-bottom: 20px;
+        background-color: white;
+      }
+      .nextLevel {
+        border: none;
+        background-color: green;
+        height: 50px;
+        border-radius: 50px;
+        width: 180px;
+        margin-top: 20px;
+      }
+      .nextLevel:hover {
+        background-color: greenyellow;
+      }
+
+      #lose {
+        display: flex;
+        align-items: center;
+        flex-flow: column;
+        position: absolute;
+        z-index: 1;
+        visibility: hidden;
+      }
+      #lose b {
+        font-size: larger;
+        margin-bottom: 20px;
+        background-color: white;
+      }
+      .vissza a {
+        text-decoration: none;
+        color: #000;
+      }
+      .vissza {
+        height: 50px;
+        border-radius: 50px;
+        width: 180px;
+        margin-top: 20px;
+        border: 1px solid black;
+        background-color: red;
+      }
+      #end {
+        position: absolute;
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+        visibility: hidden;
+        z-index: 1;
+        text-align: center;
+      }
+      #end b {
+        font-size: larger;
+        margin-bottom: 20px;
+        background-color: white;
+      }
+      @media screen and (max-width: 2000px) {
+        #gameContainer {
+          min-width: 300px;
+          width: 20%;
+          height: 90%;
         }
 
-        function sendNoteToESP32(note) {
-            if (socket && socket.readyState === WebSocket.OPEN) {
-                socket.send(note);
-            } else {
-                console.log('WebSocket connection is not open');
-            }
+        .tile {
+          height: 100px;
         }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="scoreDisplay">Score: 0</div>
 
-        window.onload = function() {
-            initWebSocket();
-        }
-    </script>
-</head>
-<body>
-    <h1>Piano Tiles Xylophone</h1>
-    <p>Click the buttons below to send notes to the ESP32 xylophone:</p>
-    <button onclick="sendNoteToESP32('C4')">C4</button>
-    <button onclick="sendNoteToESP32('D4')">D4</button>
-    <button onclick="sendNoteToESP32('E4')">E4</button>
-    <button onclick="sendNoteToESP32('F4')">F4</button>
-    <button onclick="sendNoteToESP32('G4')">G4</button>
-    <button onclick="sendNoteToESP32('A4')">A4</button>
-    <button onclick="sendNoteToESP32('B4')">B4</button>
-    <button onclick="sendNoteToESP32('C5')">C5</button>
-</body>
+    <div id="win">
+      <b>NYERTÉL!</b>
+      <button onclick="restartGame()" class="restart">
+        INDÍTSD ÚJRA A JÁTÉKOT!
+      </button>
+      <button onclick="nextLevel()" class="nextLevel">
+        A KÖVETKEZŐ SZINTRE!
+      </button>
+    </div>
+
+    <div id="lose">
+      <b>VESZTETTÉL!</b>
+
+      <button class="vissza">
+        <a href="/main">VISSZA A KEZDŐLAPRA!</a>
+      </button>
+
+      <button onclick="restartGame()" class="restart">
+        INDÍTSD ÚJRA A JÁTÉKOT!
+      </button>
+    </div>
+
+    <div id="end">
+      <b>GRATULÁLOK! <br />MEGNYERTED A JÁTÉKOT </b>
+
+      <button class="vissza" style="background-color: green">
+        <a href="/main">VISSZA A KEZDŐLAPRA!</a>
+      </button>
+
+      <button onclick="restartGame()" class="restart">
+        INDÍTSD ÚJRA A JÁTÉKOT!
+      </button>
+    </div>
+
+    <div id="gameContainer">
+      <div id="col1" class="column"></div>
+      <div id="col2" class="column"></div>
+      <div id="col3" class="column"></div>
+      <div id="col4" class="column"></div>
+    </div>
+
+    <script src="game.js"></script>
+  </body>
 </html>
